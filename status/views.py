@@ -80,6 +80,7 @@ class ServicesStatusView(View):
                 context['no_search_results'] = True
 
             context['services_list'] = services_list
+            context['searchfor'] = searchfor
 
         else:
             # Getting list of services
@@ -164,7 +165,14 @@ class SubscriptionView(View):
             context['object'] = obj
             context['service_specific'] = True
         else:
-            context['service_specific'] = False
+            context['service_specific'] = request.GET.get('service_specific')
+            context['object_passed'] = request.GET.get('object')
+
+
+        #If an update was requested but the user did not enter a valid email
+        update_email = request.GET.get('email')
+
+        context['update_email'] = update_email
 
         return render(request, self.template_name, context)
 
@@ -181,11 +189,18 @@ class SubscriptionView(View):
             "subscription_active": True
         }
 
+        context['service_specific'] = request.POST.get('service_specific')
+
+        object_passed = request.POST.get('object')
+        if object_passed:
+            context['object_passed'] = object_passed
+
         if 'subs_updates' in request.POST:
 
             if form.is_valid():
                 # Getting email entered by user
                 email = form.cleaned_data['email']
+
 
                 if 'one_service' in request.POST:
                     id = request.POST['one_service']
@@ -226,6 +241,7 @@ class SubscriptionView(View):
                     context['updated_right'] = True
                 else:
                     context['not_registered'] = True
+                    context['email_entered'] = user_email
             else:
                 context['empty_email'] = True
 
@@ -273,6 +289,7 @@ class ServiceHistoryView(View):
 
                     tickets_list = aux_list
                     searching = True
+                    context['searchfor'] = searchfor
 
             context['tickets_list'] = tickets_list
 
